@@ -11,7 +11,11 @@ function reducer(
         fetchingCalculationParamsList: false,
         fetchedCalculationParamsList: false,
         calculationParamsList: [],
-        errorCalculationParamsList: null
+        errorCalculationParamsList: null,
+        fetchingCalculationRulesList: false,
+        fetchedCalculationRulesList: false,
+        calculationRulesList: [],
+        errorCalculationRulesList: null
     },
     action
 ) {
@@ -61,6 +65,30 @@ function reducer(
                 ...state,
                 fetchingCalculationParamsList: false,
                 errorCalculationParamsList: formatServerError(action.payload)
+            };
+        case "CALCULATION_CALCULATIONRULESLIST_REQ":
+            return {
+                ...state,
+                fetchingCalculationRulesList: true,
+                fetchedCalculationRulesList: false,
+                calculationRulesList: [],
+                errorCalculationRulesList: null
+            };
+        case "CALCULATION_CALCULATIONRULESLIST_RESP":
+            return {
+                ...state,
+                fetchingCalculationRulesList: false,
+                fetchedCalculationRulesList: true,
+                calculationRulesList: !!action.payload.data.calculationRules
+                    ? action.payload.data.calculationRules.calculationRules
+                    : [],
+                errorCalculationRulesList: formatGraphQLError(action.payload)
+            };
+        case "CALCULATION_CALCULATIONRULESLIST_ERR":
+            return {
+                ...state,
+                fetchingCalculationRulesList: false,
+                errorCalculationRulesList: formatServerError(action.payload)
             };
         default:
             return state;

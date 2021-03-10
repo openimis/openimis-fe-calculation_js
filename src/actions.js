@@ -8,6 +8,10 @@ const CALCULATIONPARAMS_PROJECTION = () => [
     "calculationParams{type, name, label{en, fr}, rights{read, write, update, replace}, optionSet{value, label{en, fr}}, defaultValue}",
 ];
 
+const CALCULATIONRULES_PROJECTION = () => [
+    "calculationRules{uuid, calculationClassName}"
+]
+
 export function fetchLinkedClassList(className) {
     const payload = formatQuery(
         "linkedClass",
@@ -24,4 +28,13 @@ export function fetchCalculationParamsList(className, instanceClassName, instanc
         CALCULATIONPARAMS_PROJECTION()
     );
     return graphql(payload, "CALCULATION_CALCULATIONPARAMSLIST");
+}
+
+export function fetchCalculationRules() {
+    const payload = formatQuery(
+        "calculationRules",
+        null,
+        CALCULATIONRULES_PROJECTION()
+    );
+    return graphql(payload, "CALCULATION_CALCULATIONRULESLIST");
 }
