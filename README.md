@@ -11,6 +11,7 @@ None
 * `contract.ContractDetails.calculation`: display parameters required by multiple calculations for an object
 * `policyHolder.PolicyHolderInsuree.calculation`: display parameters required by multiple calculations for an object
 * `contributionPlan.ContributionPlan.calculation`: display parameters required by multiple calculations for an object
+* `contributionPlan.ContributionPlan.calculationRule`: enable calculation rule selection in Contribution Plan
 
 ## Available Contribution Points
 None

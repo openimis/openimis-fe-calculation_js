@@ -1,7 +1,7 @@
 import React, { Component } from "react";
-import { decodeId, NumberInput,SelectInput } from "@openimis/fe-core";
+import { decodeId, NumberInput, SelectInput } from "@openimis/fe-core";
 import { FormControlLabel, Checkbox, Grid } from "@material-ui/core";
-import { fetchLinkedClassList, fetchCalculationParamsList } from "../actions"
+import { fetchLinkedClassList, fetchCalculationParamsList } from "../actions";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import { BOOLEAN_TRUE, RIGHT_READ, JSON_EXT } from "../constants";
