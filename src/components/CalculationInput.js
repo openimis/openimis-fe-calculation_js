@@ -4,7 +4,7 @@ import { FormControlLabel, Checkbox, Grid } from "@material-ui/core";
 import { fetchLinkedClassList, fetchCalculationParamsList } from "../actions";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
-import { BOOLEAN_TRUE, RIGHT_READ, JSON_EXT } from "../constants";
+import { BOOLEAN_TRUE, RIGHT_READ, JSON_EXT, CALCULATION_RULE } from "../constants";
 
 class CalculationInput extends Component {
     constructor(props) {
@@ -28,6 +28,12 @@ class CalculationInput extends Component {
             this.setIsEntityReady();
         } else if (!!this.state.isEntityReady && !this.state.fetchedCalculationParamsList) {
             this.getCalculationParamsList();
+        } else if (
+            !this.props.value &&
+            prevProps.calculationParamsList !== this.props.calculationParamsList &&
+            !!this.props.calculationParamsList.length
+        ) {
+            this.setDefaultValue();
         }
     }
 
@@ -64,83 +70,97 @@ class CalculationInput extends Component {
         this.setState({ fetchedCalculationParamsList: true });
     }
 
+    setDefaultValue = () => {
+        const defaultValue = { [CALCULATION_RULE]: {} };
+        this.props.calculationParamsList.forEach((input) => {
+            switch (input.type) {
+                case "number":
+                case "select":
+                    defaultValue[CALCULATION_RULE][input.name] = parseInt(input.defaultValue);
+                    break;
+                case "checkbox":
+                    defaultValue[CALCULATION_RULE][input.name] = input.defaultValue.toLowerCase() == BOOLEAN_TRUE;
+                    break;
+            }
+        });
+        this.props.onChange(JSON_EXT, JSON.stringify(defaultValue));
+    }
+
     updateValue = (inputName, inputValue) => {
-        const value = this.props.value ? JSON.parse(this.props.value) : {};
-        value[inputName] = inputValue;
-        this.props.onChange(JSON_EXT, JSON.stringify(value));
+        const value = !!this.props.value && JSON.parse(this.props.value);
+        if (!!value) {
+            value[CALCULATION_RULE][inputName] = inputValue;
+            this.props.onChange(JSON_EXT, JSON.stringify(value));
+        }
     }
 
     inputs = () => {
+        const { intl, rights, requiredRights, readOnly, calculationParamsList } = this.props;
         const inputs = [];
+        const value = !!this.props.value ? JSON.parse(this.props.value)[CALCULATION_RULE] : null;
         this.state.fetchedCalculationParamsList &&
-            this.props.calculationParamsList.forEach((input) => {
+            calculationParamsList.forEach((input) => {
                 if (
-                    !!this.props.rights &&
+                    !!rights &&
                     !!input.rights &&
                     !!input.rights[RIGHT_READ] &&
-                    this.props.rights.includes(Number(input.rights[RIGHT_READ]))
+                    rights.includes(Number(input.rights[RIGHT_READ]))
                 ) {
                     const hasRequiredRights =
-                        !!this.props.requiredRights &&
-                        Array.isArray(this.props.requiredRights) &&
-                        this.props.requiredRights.every((r) => this.props.rights.includes(Number(input.rights[r])));
+                        !!requiredRights &&
+                        Array.isArray(requiredRights) &&
+                        requiredRights.every((r) => rights.includes(Number(input.rights[r])));
                     switch (input.type) {
                         case "number":
-                            inputs.push(
-                                <NumberInput
-                                    key={input.name}
-                                    label={input.label[this.props.intl.locale]}
-                                    value={
-                                        !!this.props.value && !!JSON.parse(this.props.value)[input.name]
-                                            ? JSON.parse(this.props.value)[input.name]
-                                            : input.defaultValue
-                                    }
-                                    onChange={(v) => this.updateValue(input.name, v)}
-                                    readOnly={this.props.readOnly || !hasRequiredRights}
-                                />
-                            );
+                            if (!!value && value.hasOwnProperty(input.name)) {
+                                inputs.push(
+                                    <NumberInput
+                                        key={input.name}
+                                        label={input.label[intl.locale]}
+                                        value={value[input.name]}
+                                        onChange={(v) => this.updateValue(input.name, v)}
+                                        readOnly={readOnly || !hasRequiredRights}
+                                    />
+                                );
+                            }
                             break;
                         case "checkbox":
-                            inputs.push(
-                                <FormControlLabel
-                                    key={input.name}
-                                    label={input.label[this.props.intl.locale]}
-                                    control={
-                                        <Checkbox
-                                            checked={
-                                                !!this.props.value && !!JSON.parse(this.props.value)[input.name]
-                                                    ? JSON.parse(this.props.value)[input.name]
-                                                    : input.defaultValue.toLowerCase() == BOOLEAN_TRUE
-                                            }
-                                            onChange={(event) => this.updateValue(input.name, event.target.checked)}
-                                            name={input.name}
-                                            disabled={this.props.readOnly || !hasRequiredRights}
-                                        />
-                                    }
-                                />
-                            );
+                            if (!!value && value.hasOwnProperty(input.name)) {
+                                inputs.push(
+                                    <FormControlLabel
+                                        key={input.name}
+                                        label={input.label[intl.locale]}
+                                        control={
+                                            <Checkbox
+                                                checked={value[input.name]}
+                                                onChange={(event) => this.updateValue(input.name, event.target.checked)}
+                                                name={input.name}
+                                                disabled={readOnly || !hasRequiredRights}
+                                            />
+                                        }
+                                    />
+                                );
+                            }
                             break;
                         case "select":
-                            const options = [
-                                ...input.optionSet.map((option) => ({
-                                    value: parseInt(option.value),
-                                    label: option.label[this.props.intl.locale]
-                                }))
-                            ];
-                            inputs.push(
-                                <SelectInput
-                                    key={input.name}
-                                    label={input.label[this.props.intl.locale]}
-                                    options={options}
-                                    value={
-                                        !!this.props.value && !!JSON.parse(this.props.value)[input.name]
-                                            ? JSON.parse(this.props.value)[input.name]
-                                            : parseInt(input.defaultValue)
-                                    }
-                                    onChange={(v) => this.updateValue(input.name, v)}
-                                    readOnly={this.props.readOnly || !hasRequiredRights}
-                                />
-                            )
+                            if (!!value && value.hasOwnProperty(input.name)) {
+                                const options = [
+                                    ...input.optionSet.map((option) => ({
+                                        value: parseInt(option.value),
+                                        label: option.label[intl.locale]
+                                    }))
+                                ];
+                                inputs.push(
+                                    <SelectInput
+                                        key={input.name}
+                                        label={input.label[intl.locale]}
+                                        options={options}
+                                        value={value[input.name]}
+                                        onChange={(v) => this.updateValue(input.name, v)}
+                                        readOnly={readOnly || !hasRequiredRights}
+                                    />
+                                );
+                            }
                             break;
                     }
                 }
