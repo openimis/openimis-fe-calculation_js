@@ -21,15 +21,11 @@ class CalculationInput extends Component {
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        if (
-            !this.state.fetchedCalculationParamsList &&
-            (prevProps.entity !== this.props.entity || prevProps.linkedClassList !== this.props.linkedClassList)
-        ) {
-            this.setIsEntityReady();
+        if (prevProps.entity !== this.props.entity || prevProps.linkedClassList !== this.props.linkedClassList) {
+            this.setIsEntityReady(prevProps);
         } else if (!!this.state.isEntityReady && !this.state.fetchedCalculationParamsList) {
             this.getCalculationParamsList();
         } else if (
-            !this.props.value &&
             prevProps.calculationParamsList !== this.props.calculationParamsList &&
             !!this.props.calculationParamsList.length
         ) {
@@ -37,19 +33,32 @@ class CalculationInput extends Component {
         }
     }
 
-    setIsEntityReady = () => {
+    setIsEntityReady = (prevProps = null) => {
         let isEntityReady = false;
+        let refetchCalculationParamsList = false;
         if (!!this.props.entity && !!this.props.linkedClassList.length) {
             isEntityReady = true;
             this.props.linkedClassList.forEach((linkedClassName) => {
-                if (!this.props.entity[
-                    Object.keys(this.props.entity).find((k) => k.toLowerCase() === linkedClassName.toLowerCase())
-                ]) {
+                const linkedClassKey = Object.keys(this.props.entity).find(
+                    (k) => k.toLowerCase() === linkedClassName.toLowerCase()
+                );
+                if (!!this.props.entity[linkedClassKey]) {
+                    if (
+                        !!prevProps &&
+                        !!prevProps.entity &&
+                        JSON.stringify(prevProps.entity[linkedClassKey]) !==
+                            JSON.stringify(this.props.entity[linkedClassKey])
+                    ) {
+                        refetchCalculationParamsList = true;
+                    }
+                } else {
                     isEntityReady = false;
                 }
             });
         }
-        this.setState({ isEntityReady });
+        this.setState(
+            !!refetchCalculationParamsList ? { isEntityReady, fetchedCalculationParamsList: false } : { isEntityReady }
+        );
     }
 
     getCalculationParamsList = () => {
@@ -71,19 +80,31 @@ class CalculationInput extends Component {
     }
 
     setDefaultValue = () => {
-        const defaultValue = { [CALCULATION_RULE]: {} };
+        const defaultValue = !!this.props.value ? JSON.parse(this.props.value) : { [CALCULATION_RULE]: {} };
+        let applyDefaultValue = false;
         this.props.calculationParamsList.forEach((input) => {
-            switch (input.type) {
-                case "number":
-                case "select":
-                    defaultValue[CALCULATION_RULE][input.name] = parseInt(input.defaultValue);
-                    break;
-                case "checkbox":
-                    defaultValue[CALCULATION_RULE][input.name] = input.defaultValue.toLowerCase() == BOOLEAN_TRUE;
-                    break;
+            if (
+                !(
+                    !!defaultValue &&
+                    !!defaultValue[CALCULATION_RULE] &&
+                    defaultValue[CALCULATION_RULE].hasOwnProperty(input.name)
+                )
+            ) {
+                applyDefaultValue = true;
+                switch (input.type) {
+                    case "number":
+                    case "select":
+                        defaultValue[CALCULATION_RULE][input.name] = parseInt(input.defaultValue);
+                        break;
+                    case "checkbox":
+                        defaultValue[CALCULATION_RULE][input.name] = input.defaultValue.toLowerCase() == BOOLEAN_TRUE;
+                        break;
+                }
             }
         });
-        this.props.onChange(JSON_EXT, JSON.stringify(defaultValue));
+        if (applyDefaultValue) {
+            this.props.onChange(JSON_EXT, JSON.stringify(defaultValue));
+        }
     }
 
     updateValue = (inputName, inputValue) => {
