@@ -10,13 +10,28 @@ class CalculationRulePicker extends Component {
     }
 
     render() {
-        const { label, value, required, readOnly, onChange, calculationRulesList } = this.props;
+        const {
+            label,
+            value,
+            required,
+            readOnly,
+            withNull = false,
+            nullLabel = null,
+            onChange,
+            calculationRulesList
+        } = this.props;
         let options = [
             ...calculationRulesList.map((calculationRule) => ({
                 value: calculationRule.uuid,
                 label: calculationRule.calculationClassName
             }))
         ];
+        if (withNull) {
+            options.unshift({
+                value: null,
+                label: nullLabel || ""
+            })
+        }
         return (
             <SelectInput
                 label={label}
