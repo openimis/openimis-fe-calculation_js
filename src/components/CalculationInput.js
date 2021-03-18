@@ -26,6 +26,7 @@ class CalculationInput extends Component {
         } else if (!!this.state.isEntityReady && !this.state.fetchedCalculationParamsList) {
             this.getCalculationParamsList();
         } else if (
+            !this.props.readOnly &&
             prevProps.calculationParamsList !== this.props.calculationParamsList &&
             !!this.props.calculationParamsList.length
         ) {
@@ -81,15 +82,12 @@ class CalculationInput extends Component {
 
     setDefaultValue = () => {
         const defaultValue = !!this.props.value ? JSON.parse(this.props.value) : { [CALCULATION_RULE]: {} };
+        if (!defaultValue.hasOwnProperty(CALCULATION_RULE)) {
+            defaultValue[CALCULATION_RULE] = {};
+        }
         let applyDefaultValue = false;
         this.props.calculationParamsList.forEach((input) => {
-            if (
-                !(
-                    !!defaultValue &&
-                    !!defaultValue[CALCULATION_RULE] &&
-                    defaultValue[CALCULATION_RULE].hasOwnProperty(input.name)
-                )
-            ) {
+            if (!defaultValue[CALCULATION_RULE].hasOwnProperty(input.name)) {
                 applyDefaultValue = true;
                 switch (input.type) {
                     case "number":
