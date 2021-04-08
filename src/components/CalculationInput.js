@@ -11,7 +11,9 @@ class CalculationInput extends Component {
         super(props);
         this.state = {
             isEntityReady: false,
-            fetchedCalculationParamsList: false
+            fetchedCalculationParamsList: false,
+            calculationParamsListRequestLabels: [],
+            calculationParamsList: []
         }
     }
 
@@ -21,16 +23,30 @@ class CalculationInput extends Component {
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        if (prevProps.entity !== this.props.entity || prevProps.linkedClassList !== this.props.linkedClassList) {
+        if (
+            prevProps.entity !== this.props.entity ||
+            prevProps.linkedClassList !== this.props.linkedClassList
+        ) {
             this.setIsEntityReady(prevProps);
-        } else if (!!this.state.isEntityReady && !this.state.fetchedCalculationParamsList) {
+        } else if (
+            !!this.state.isEntityReady &&
+            !this.state.fetchedCalculationParamsList
+        ) {
             this.getCalculationParamsList();
         } else if (
-            !this.props.readOnly &&
             prevProps.calculationParamsList !== this.props.calculationParamsList &&
-            !!this.props.calculationParamsList.length
+            !!this.props.calculationParamsList.length &&
+            !!this.props.calculationParamsListRequestLabel &&
+            this.state.calculationParamsListRequestLabels.includes(
+                this.props.calculationParamsListRequestLabel
+            )
         ) {
-            this.setDefaultValue();
+            this.setState(
+                (_, props) => ({
+                    calculationParamsList: props.calculationParamsList,
+                }),
+                () => !this.props.readOnly && this.setDefaultValue()
+            );
         }
     }
 
@@ -58,11 +74,14 @@ class CalculationInput extends Component {
             });
         }
         this.setState(
-            !!refetchCalculationParamsList ? { isEntityReady, fetchedCalculationParamsList: false } : { isEntityReady }
+            refetchCalculationParamsList
+                ? { isEntityReady, fetchedCalculationParamsList: false }
+                : { isEntityReady }
         );
     }
 
     getCalculationParamsList = () => {
+        const calculationParamsListRequestLabels = [];
         this.props.linkedClassList.forEach((linkedClassName) => {
             const instance = this.props.entity[
                 Object.keys(this.props.entity).find((k) => k.toLowerCase() === linkedClassName.toLowerCase())
@@ -74,10 +93,20 @@ class CalculationInput extends Component {
                 } catch (error) {
                     instanceId = instance.id;
                 }
-                this.props.fetchCalculationParamsList(this.props.className, linkedClassName, instanceId);
+                calculationParamsListRequestLabels.push(
+                    `${this.props.className}-${linkedClassName}-${instanceId}`
+                );
+                this.props.fetchCalculationParamsList(
+                    this.props.className,
+                    linkedClassName,
+                    instanceId
+                );
             }
         });
-        this.setState({ fetchedCalculationParamsList: true });
+        this.setState({
+            fetchedCalculationParamsList: true,
+            calculationParamsListRequestLabels
+        });
     }
 
     setDefaultValue = () => {
@@ -86,7 +115,7 @@ class CalculationInput extends Component {
             defaultValue[CALCULATION_RULE] = {};
         }
         let applyDefaultValue = false;
-        this.props.calculationParamsList.forEach((input) => {
+        this.state.calculationParamsList.forEach((input) => {
             if (!defaultValue[CALCULATION_RULE].hasOwnProperty(input.name)) {
                 applyDefaultValue = true;
                 switch (input.type) {
@@ -114,10 +143,13 @@ class CalculationInput extends Component {
     }
 
     inputs = () => {
-        const { intl, rights, requiredRights, readOnly, calculationParamsList } = this.props;
+        const { intl, rights, requiredRights, readOnly } = this.props;
+        const { fetchedCalculationParamsList, calculationParamsList } = this.state;
         const inputs = [];
-        const value = !!this.props.value ? JSON.parse(this.props.value)[CALCULATION_RULE] : null;
-        this.state.fetchedCalculationParamsList &&
+        const value = !!this.props.value
+            ? JSON.parse(this.props.value)[CALCULATION_RULE]
+            : null;
+        fetchedCalculationParamsList &&
             calculationParamsList.forEach((input) => {
                 if (
                     !!rights &&
@@ -199,6 +231,7 @@ class CalculationInput extends Component {
 const mapStateToProps = state => ({
     linkedClassList: state.calculation.linkedClassList,
     calculationParamsList: state.calculation.calculationParamsList,
+    calculationParamsListRequestLabel: state.calculation.calculationParamsListRequestLabel,
     rights: !!state.core && !!state.core.user && !!state.core.user.i_user ? state.core.user.i_user.rights : []
 });
 
