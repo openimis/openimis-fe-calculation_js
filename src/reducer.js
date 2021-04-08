@@ -12,6 +12,7 @@ function reducer(
         fetchedCalculationParamsList: false,
         calculationParamsList: [],
         errorCalculationParamsList: null,
+        calculationParamsListRequestLabel: null,
         fetchingCalculationRulesList: false,
         fetchedCalculationRulesList: false,
         calculationRulesList: [],
@@ -58,7 +59,10 @@ function reducer(
                 calculationParamsList: !!action.payload.data.calculationParams.calculationParams.length
                     ? action.payload.data.calculationParams.calculationParams
                     : state.calculationParamsList,
-                errorCalculationParamsList: formatGraphQLError(action.payload)
+                errorCalculationParamsList: formatGraphQLError(action.payload),
+                calculationParamsListRequestLabel: !!action.meta && !!action.meta.requestLabel
+                    ? action.meta.requestLabel
+                    : state.calculationParamsListRequestLabel
             };
         case "CALCULATION_CALCULATIONPARAMSLIST_ERR":
             return {

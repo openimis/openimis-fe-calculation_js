@@ -27,7 +27,11 @@ export function fetchCalculationParamsList(className, instanceClassName, instanc
         [`className: "${className}", instanceClassName: "${instanceClassName}", instanceId: "${instanceId}"`],
         CALCULATIONPARAMS_PROJECTION()
     );
-    return graphql(payload, "CALCULATION_CALCULATIONPARAMSLIST");
+    return graphql(
+        payload,
+        "CALCULATION_CALCULATIONPARAMSLIST",
+        { requestLabel: `${className}-${instanceClassName}-${instanceId}` }
+    );
 }
 
 export function fetchCalculationRules() {
