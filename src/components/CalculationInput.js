@@ -1,20 +1,28 @@
 import React, { Component } from "react";
-import { decodeId, NumberInput, SelectInput } from "@openimis/fe-core";
+import { decodeId, NumberInput, SelectInput, formatMessage } from "@openimis/fe-core";
 import { FormControlLabel, Checkbox, Grid } from "@material-ui/core";
 import { fetchLinkedClassList, fetchCalculationParamsList } from "../actions";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
-import { BOOLEAN_TRUE, RIGHT_READ, JSON_EXT, CALCULATION_RULE } from "../constants";
+import { Parser } from "hot-formula-parser"
+import {
+    BOOLEAN_TRUE,
+    RIGHT_READ,
+    JSON_EXT,
+    CALCULATION_RULE,
+    OBJECT_FIELD_PATH_REGEX,
+    OBJECT_FIELD_PATH_SEPARATOR,
+    VARIABLE_NAME_SEPARATOR,
+    INPUT_VARIABLE_NAME,
+} from "../constants";
 
 class CalculationInput extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isEntityReady: false,
-            fetchedCalculationParamsList: false,
-            calculationParamsListRequestLabels: [],
-            calculationParamsList: []
-        }
+    state = {
+        isEntityReady: false,
+        fetchedCalculationParamsList: false,
+        calculationParamsListRequestLabels: [],
+        calculationParamsList: [],
+        jsonExtValid: {}
     }
 
     componentDidMount() {
@@ -47,6 +55,15 @@ class CalculationInput extends Component {
                 }),
                 () => !this.props.readOnly && this.setDefaultValue()
             );
+        }
+        if (
+            prevState.jsonExtValid !== this.state.jsonExtValid &&
+            !!this.props.setJsonExtValid
+        ) {
+            const isJsonExtValid = Object.keys(this.state.jsonExtValid)
+                .map((key) => this.state.jsonExtValid[key])
+                .every((valid) => valid === true);
+            this.props.setJsonExtValid(isJsonExtValid);
         }
     }
 
@@ -142,8 +159,45 @@ class CalculationInput extends Component {
         }
     }
 
+    error = (inputName, inputValue, inputCondition) => {
+        const parser = new Parser();
+        let isValid = true;
+        if (!!inputCondition) {
+            let condition = inputCondition;
+            const objectFieldPaths = condition.match(OBJECT_FIELD_PATH_REGEX);
+            if (!!objectFieldPaths) {
+                objectFieldPaths.forEach((objectFieldPath) => {
+                    const objectFieldPathSplit = objectFieldPath.split(OBJECT_FIELD_PATH_SEPARATOR);
+                    objectFieldPathSplit.shift();
+                    const variableName = objectFieldPathSplit.join(VARIABLE_NAME_SEPARATOR).toUpperCase();
+                    condition = condition.replace(objectFieldPath, variableName);
+                    let variableValue = this.props.entity;
+                    objectFieldPathSplit.forEach((objectField) => {
+                        variableValue =
+                            !!variableValue && variableValue[objectField] !== null
+                                ? variableValue[objectField]
+                                : null;
+                    });
+                    parser.setVariable(variableName, variableValue);
+                });
+            }
+            parser.setVariable(INPUT_VARIABLE_NAME, inputValue);
+            const result = parser.parse(condition);
+            isValid = !!result && result.error === null && !!result.result;
+        }
+        if (this.state.jsonExtValid[inputName] !== isValid) {
+            this.setState((state) => ({
+                jsonExtValid: {
+                    ...state.jsonExtValid,
+                    [inputName]: isValid
+                }
+            }));
+        }
+        return !isValid && formatMessage(this.props.intl, "calculation", "validationFailed");
+    }
+
     inputs = () => {
-        const { intl, rights, requiredRights, readOnly } = this.props;
+        const { intl, rights, requiredRights, readOnly = false } = this.props;
         const { fetchedCalculationParamsList, calculationParamsList } = this.state;
         const inputs = [];
         const value = !!this.props.value
@@ -161,9 +215,9 @@ class CalculationInput extends Component {
                         !!requiredRights &&
                         Array.isArray(requiredRights) &&
                         requiredRights.every((r) => rights.includes(Number(input.rights[r])));
-                    switch (input.type) {
-                        case "number":
-                            if (!!value && value.hasOwnProperty(input.name)) {
+                    if (!!input.relevance && !!value && value.hasOwnProperty(input.name)) {
+                        switch (input.type) {
+                            case "number":
                                 inputs.push(
                                     <NumberInput
                                         key={input.name}
@@ -171,12 +225,14 @@ class CalculationInput extends Component {
                                         value={value[input.name]}
                                         onChange={(v) => this.updateValue(input.name, v)}
                                         readOnly={readOnly || !hasRequiredRights}
+                                        error={
+                                            !readOnly &&
+                                            this.error(input.name, value[input.name], input.condition)
+                                        }
                                     />
                                 );
-                            }
-                            break;
-                        case "checkbox":
-                            if (!!value && value.hasOwnProperty(input.name)) {
+                                break;
+                            case "checkbox":
                                 inputs.push(
                                     <FormControlLabel
                                         key={input.name}
@@ -187,14 +243,16 @@ class CalculationInput extends Component {
                                                 onChange={(event) => this.updateValue(input.name, event.target.checked)}
                                                 name={input.name}
                                                 disabled={readOnly || !hasRequiredRights}
+                                                error={
+                                                    !readOnly &&
+                                                    this.error(input.name, value[input.name], input.condition)
+                                                }
                                             />
                                         }
                                     />
                                 );
-                            }
-                            break;
-                        case "select":
-                            if (!!value && value.hasOwnProperty(input.name)) {
+                                break;
+                            case "select":
                                 const options = [
                                     ...input.optionSet.map((option) => ({
                                         value: parseInt(option.value),
@@ -209,10 +267,14 @@ class CalculationInput extends Component {
                                         value={value[input.name]}
                                         onChange={(v) => this.updateValue(input.name, v)}
                                         readOnly={readOnly || !hasRequiredRights}
+                                        error={
+                                            !readOnly &&
+                                            this.error(input.name, value[input.name], input.condition)
+                                        }
                                     />
                                 );
-                            }
-                            break;
+                                break;
+                        }
                     }
                 }
             });
