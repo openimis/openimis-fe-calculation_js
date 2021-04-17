@@ -5,7 +5,7 @@ import {
 const LINKEDCLASSES_PROJECTION = () => ["linkedClasses"];
 
 const CALCULATIONPARAMS_PROJECTION = () => [
-    "calculationParams{type, name, label{en, fr}, rights{read, write, update, replace}, optionSet{value, label{en, fr}}, defaultValue}",
+    "calculationParams{type, name, label{en, fr}, rights{read, write, update, replace}, optionSet{value, label{en, fr}}, relevance, condition, defaultValue}",
 ];
 
 const CALCULATIONRULES_PROJECTION = () => [

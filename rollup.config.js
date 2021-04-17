@@ -28,7 +28,8 @@ export default {
     "moment",
     "prop-types",
     /^react.*/,
-    /^redux.*/
+    /^redux.*/,
+    "hot-formula-parser"
   ],
   plugins: [
     json(),
