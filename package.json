@@ -34,7 +34,7 @@
     "react-router-dom": "^5.2.0",
     "redux": "^4.0.5",
     "redux-api-middleware": "^3.2.1",
-    "rollup": "^2.10.0",
+    "rollup": "^2.10.0"
   },
   "files": [
     "dist"
