@@ -1,6 +1,6 @@
 {
   "name": "@openimis/fe-calculation",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "license": "AGPL-3.0-only",
   "description": "openIMIS Frontend Calculation module",
   "repository": "openimis/openimis-fe-calculation_js",
