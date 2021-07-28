@@ -40,6 +40,6 @@
     "dist"
   ],
   "dependencies": {
-    "hot-formula-parser": "^4.0.0
+    "hot-formula-parser": "^4.0.0"
   }
 }
