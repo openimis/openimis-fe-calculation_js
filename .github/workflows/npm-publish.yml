@@ -11,12 +11,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - uses: olegtarasov/get-tag@v2.1
+        id: tagName
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: 12
+      - name: update the version with TAG
+        run: echo $(jq --arg a "$GIT_TAG_NAME" '.version = ($a)' package.json) >  package.json
       - run: yarn install
-      - run: yarn build      
+      - run: yarn build
+      
 
   publish-npm:
     needs: build
