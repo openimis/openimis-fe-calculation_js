@@ -34,10 +34,11 @@ export function fetchCalculationParamsList(className, instanceClassName, instanc
     );
 }
 
-export function fetchCalculationRules() {
+export function fetchCalculationRules(params) {
+    let filter = !!params !== [] ? params : null;
     const payload = formatQuery(
         "calculationRules",
-        null,
+        filter,
         CALCULATIONRULES_PROJECTION()
     );
     return graphql(payload, "CALCULATION_CALCULATIONRULESLIST");
