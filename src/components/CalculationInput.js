@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { decodeId, NumberInput, SelectInput, formatMessage } from "@openimis/fe-core";
+import { decodeId, NumberInput, SelectInput, TextInput, formatMessage } from "@openimis/fe-core";
 import { FormControlLabel, Checkbox, Grid } from "@material-ui/core";
 import { fetchLinkedClassList, fetchCalculationParamsList } from "../actions";
 import { connect } from "react-redux";
@@ -137,6 +137,9 @@ class CalculationInput extends Component {
                 applyDefaultValue = true;
                 switch (input.type) {
                     case "number":
+                    case "string":
+                        defaultValue[CALCULATION_RULE][input.name] = input.defaultValue;
+                        break;
                     case "select":
                         defaultValue[CALCULATION_RULE][input.name] = parseInt(input.defaultValue);
                         break;
@@ -264,6 +267,21 @@ class CalculationInput extends Component {
                                         key={input.name}
                                         label={input.label[intl.locale]}
                                         options={options}
+                                        value={value[input.name]}
+                                        onChange={(v) => this.updateValue(input.name, v)}
+                                        readOnly={readOnly || !hasRequiredRights}
+                                        error={
+                                            !readOnly &&
+                                            this.error(input.name, value[input.name], input.condition)
+                                        }
+                                    />
+                                );
+                                break;
+                            case "string":
+                                inputs.push(
+                                    <TextInput
+                                        key={input.name}
+                                        label={input.label[intl.locale]}
                                         value={value[input.name]}
                                         onChange={(v) => this.updateValue(input.name, v)}
                                         readOnly={readOnly || !hasRequiredRights}
