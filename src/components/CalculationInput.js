@@ -258,7 +258,7 @@ class CalculationInput extends Component {
                             case "select":
                                 const options = [
                                     ...input.optionSet.map((option) => ({
-                                        value: parseInt(option.value),
+                                        value: parseInt(option.value)? parseInt(option.value) : option.value,
                                         label: option.label[intl.locale]
                                     }))
                                 ];
