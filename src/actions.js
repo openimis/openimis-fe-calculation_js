@@ -53,6 +53,5 @@ export function fetchCalculationRules(params) {
         filter,
         CALCULATIONRULES_PROJECTION()
     );
-    console.log(payload)
     return graphql(payload, "CALCULATION_CALCULATIONRULESLIST");
 }
