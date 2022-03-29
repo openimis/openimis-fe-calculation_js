@@ -36,10 +36,23 @@ export function fetchCalculationParamsList(className, instanceClassName, instanc
 
 export function fetchCalculationRules(params) {
     let filter = !!params !== [] ? params : null;
+    if (filter === undefined) {
+        filter = []
+    }
+    
+    var pathname = window.location.pathname 
+    if (pathname.includes('contributionPlanBundles')) {
+        filter.push(`calcruleType: "CV:"`)
+    }
+    if (pathname.includes('paymentPlans')) {
+        filter.push(`calcruleType: "payment:"`)
+    }
+    
     const payload = formatQuery(
         "calculationRules",
         filter,
         CALCULATIONRULES_PROJECTION()
     );
+    console.log(payload)
     return graphql(payload, "CALCULATION_CALCULATIONRULESLIST");
 }
