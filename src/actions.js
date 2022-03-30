@@ -41,7 +41,7 @@ export function fetchCalculationRules(params) {
     }
     
     var pathname = window.location.pathname 
-    if (pathname.includes('contributionPlanBundles')) {
+    if (pathname.includes('contributionPlanBundles') || pathname.includes('contributionPlans/contributionPlan')) {
         filter.push(`calcruleType: "account_receivable"`)
     }
     if (pathname.includes('paymentPlans')) {

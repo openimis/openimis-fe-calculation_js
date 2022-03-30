@@ -55,7 +55,23 @@ class CalculationInput extends Component {
                 }),
                 () => !this.props.readOnly && this.setDefaultValue()
             );
+        } else if (
+            prevProps.calculationParamsList.length > 0 &&
+            this.props.calculationParamsList.length == 0 
+        ) {
+            /* 
+                additional 'if' statemt when have previous calcrule 
+                with params > 0 and current calcrule has a 
+                number of available parameter = 0 
+            */
+            this.setState(
+                (_, props) => ({
+                    calculationParamsList: props.calculationParamsList,
+                }),
+                () => !this.props.readOnly && this.setDefaultValue()
+            );
         }
+
         if (
             prevState.jsonExtValid !== this.state.jsonExtValid &&
             !!this.props.setJsonExtValid
