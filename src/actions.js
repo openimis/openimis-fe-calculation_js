@@ -42,10 +42,10 @@ export function fetchCalculationRules(params) {
     
     var pathname = window.location.pathname 
     if (pathname.includes('contributionPlanBundles')) {
-        filter.push(`calcruleType: "CV:"`)
+        filter.push(`calcruleType: "account_receivable"`)
     }
     if (pathname.includes('paymentPlans')) {
-        filter.push(`calcruleType: "payment:"`)
+        filter.push(`calcruleType: "account_payable"`)
     }
     
     const payload = formatQuery(
