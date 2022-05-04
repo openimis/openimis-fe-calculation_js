@@ -6,4 +6,4 @@ export function parseBool(str) {
       return str == "true" ? true : false;
     }
   
-  }
+}
