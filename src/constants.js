@@ -6,3 +6,4 @@ export const OBJECT_FIELD_PATH_REGEX = /OBJECT(\.[a-zA-Z]*)*/g
 export const OBJECT_FIELD_PATH_SEPARATOR = "."
 export const VARIABLE_NAME_SEPARATOR = "_"
 export const INPUT_VARIABLE_NAME = "INPUT"
+export const OBJECT_VARIABLE_NAME = "OBJECT"
