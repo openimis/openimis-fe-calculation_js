@@ -34,10 +34,23 @@ export function fetchCalculationParamsList(className, instanceClassName, instanc
     );
 }
 
-export function fetchCalculationRules() {
+export function fetchCalculationRules(params) {
+    let filter = !!params !== [] ? params : null;
+    if (filter === undefined) {
+        filter = []
+    }
+    
+    var pathname = window.location.pathname 
+    if (pathname.includes('contributionPlanBundles') || pathname.includes('contributionPlans/contributionPlan')) {
+        filter.push(`calcruleType: "account_receivable"`)
+    }
+    if (pathname.includes('paymentPlans')) {
+        filter.push(`calcruleType: "account_payable"`)
+    }
+    
     const payload = formatQuery(
         "calculationRules",
-        null,
+        filter,
         CALCULATIONRULES_PROJECTION()
     );
     return graphql(payload, "CALCULATION_CALCULATIONRULESLIST");
