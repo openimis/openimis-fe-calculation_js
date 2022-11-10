@@ -5,6 +5,7 @@ import { fetchLinkedClassList, fetchCalculationParamsList } from "../actions";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import { Parser } from "hot-formula-parser"
+import { parseBool } from "../utils"
 import {
     BOOLEAN_TRUE,
     RIGHT_READ,
@@ -14,7 +15,9 @@ import {
     OBJECT_FIELD_PATH_SEPARATOR,
     VARIABLE_NAME_SEPARATOR,
     INPUT_VARIABLE_NAME,
+    OBJECT_VARIABLE_NAME
 } from "../constants";
+
 
 class CalculationInput extends Component {
     state = {
@@ -215,6 +218,39 @@ class CalculationInput extends Component {
         return !isValid && formatMessage(this.props.intl, "calculation", "validationFailed");
     }
 
+    relevance = (inputValue, inputRelevance) => {
+        const parser = new Parser();
+        let isRelevance = inputRelevance;
+        let checkInputRelevance = String(inputRelevance);
+        if (checkInputRelevance !== 'true' && checkInputRelevance !== 'True') {
+            let relevance = inputRelevance;
+            const objectFieldPaths = relevance.match(OBJECT_FIELD_PATH_REGEX);
+            if (!!objectFieldPaths) {
+                objectFieldPaths.forEach((objectFieldPath) => {
+                    const objectFieldPathSplit = objectFieldPath.split(OBJECT_FIELD_PATH_SEPARATOR);
+                    objectFieldPathSplit.shift();
+                    const variableName = objectFieldPathSplit.join(VARIABLE_NAME_SEPARATOR).toUpperCase();
+                    relevance = relevance.replace(objectFieldPath, variableName);
+                    let variableValue = this.props.entity;
+                    objectFieldPathSplit.forEach((objectField) => {
+                        variableValue =
+                            !!variableValue && variableValue[objectField] !== null
+                                ? variableValue[objectField]
+                                : null;
+                        });
+                    parser.setVariable(variableName, variableValue);
+                    });
+            }
+            parser.setVariable(OBJECT_VARIABLE_NAME, inputValue);
+            const result = parser.parse(relevance);
+            isRelevance = !!result && result.error === null && !!result.result;
+        }
+        else{
+            inputRelevance = parseBool(inputRelevance)
+        }
+        return isRelevance 
+    }
+
     inputs = () => {
         const { intl, rights, requiredRights, readOnly = false } = this.props;
         const { fetchedCalculationParamsList, calculationParamsList } = this.state;
@@ -234,80 +270,84 @@ class CalculationInput extends Component {
                         !!requiredRights &&
                         Array.isArray(requiredRights) &&
                         requiredRights.every((r) => rights.includes(Number(input.rights[r])));
+                    
                     if (!!input.relevance && !!value && value.hasOwnProperty(input.name)) {
-                        switch (input.type) {
-                            case "number":
-                                inputs.push(
-                                    <NumberInput
-                                        key={input.name}
-                                        label={input.label[intl.locale]}
-                                        value={value[input.name]}
-                                        onChange={(v) => this.updateValue(input.name, v)}
-                                        readOnly={readOnly || !hasRequiredRights}
-                                        error={
-                                            !readOnly &&
-                                            this.error(input.name, value[input.name], input.condition)
-                                        }
-                                    />
-                                );
+                        let checkRelevance = this.relevance(value[input.name], input.relevance);
+                        if (!!checkRelevance){                   
+                            switch (input.type) {                    
+                                case "number":
+                                    inputs.push(
+                                        <NumberInput
+                                            key={input.name}
+                                            label={input.label[intl.locale]}
+                                            value={value[input.name]}
+                                            onChange={(v) => this.updateValue(input.name, v)}
+                                            readOnly={readOnly || !hasRequiredRights}
+                                            error={
+                                                !readOnly &&
+                                                this.error(input.name, value[input.name], input.condition)
+                                            }
+                                        />
+                                    );
+                                    break;
+                                case "checkbox":
+                                    inputs.push(
+                                        <FormControlLabel
+                                            key={input.name}
+                                            label={input.label[intl.locale]}
+                                            control={
+                                                <Checkbox
+                                                    checked={value[input.name]}
+                                                    onChange={(event) => this.updateValue(input.name, event.target.checked)}
+                                                    name={input.name}
+                                                    disabled={readOnly || !hasRequiredRights}
+                                                    error={
+                                                        !readOnly &&
+                                                        this.error(input.name, value[input.name], input.condition)
+                                                    }
+                                                />
+                                            }
+                                        />
+                                    );
+                                    break;
+                                case "select":
+                                    const options = [
+                                        ...input.optionSet.map((option) => ({
+                                            value: parseInt(option.value)? parseInt(option.value) : option.value,
+                                            label: option.label[intl.locale]
+                                        }))
+                                    ];
+                                    inputs.push(
+                                        <SelectInput
+                                            key={input.name}
+                                            label={input.label[intl.locale]}
+                                            options={options}
+                                            value={value[input.name]}
+                                            onChange={(v) => this.updateValue(input.name, v)}
+                                            readOnly={readOnly || !hasRequiredRights}
+                                            error={
+                                                !readOnly &&
+                                                this.error(input.name, value[input.name], input.condition)
+                                            }
+                                        />
+                                    );
+                                    break;
+                                case "string":
+                                    inputs.push(
+                                        <TextInput
+                                            key={input.name}
+                                            label={input.label[intl.locale]}
+                                            value={value[input.name]}
+                                            onChange={(v) => this.updateValue(input.name, v)}
+                                            readOnly={readOnly || !hasRequiredRights}
+                                            error={
+                                                !readOnly &&
+                                                this.error(input.name, value[input.name], input.condition)
+                                            }
+                                        />
+                                    );
                                 break;
-                            case "checkbox":
-                                inputs.push(
-                                    <FormControlLabel
-                                        key={input.name}
-                                        label={input.label[intl.locale]}
-                                        control={
-                                            <Checkbox
-                                                checked={value[input.name]}
-                                                onChange={(event) => this.updateValue(input.name, event.target.checked)}
-                                                name={input.name}
-                                                disabled={readOnly || !hasRequiredRights}
-                                                error={
-                                                    !readOnly &&
-                                                    this.error(input.name, value[input.name], input.condition)
-                                                }
-                                            />
-                                        }
-                                    />
-                                );
-                                break;
-                            case "select":
-                                const options = [
-                                    ...input.optionSet.map((option) => ({
-                                        value: parseInt(option.value)? parseInt(option.value) : option.value,
-                                        label: option.label[intl.locale]
-                                    }))
-                                ];
-                                inputs.push(
-                                    <SelectInput
-                                        key={input.name}
-                                        label={input.label[intl.locale]}
-                                        options={options}
-                                        value={value[input.name]}
-                                        onChange={(v) => this.updateValue(input.name, v)}
-                                        readOnly={readOnly || !hasRequiredRights}
-                                        error={
-                                            !readOnly &&
-                                            this.error(input.name, value[input.name], input.condition)
-                                        }
-                                    />
-                                );
-                                break;
-                            case "string":
-                                inputs.push(
-                                    <TextInput
-                                        key={input.name}
-                                        label={input.label[intl.locale]}
-                                        value={value[input.name]}
-                                        onChange={(v) => this.updateValue(input.name, v)}
-                                        readOnly={readOnly || !hasRequiredRights}
-                                        error={
-                                            !readOnly &&
-                                            this.error(input.name, value[input.name], input.condition)
-                                        }
-                                    />
-                                );
-                                break;
+                            }
                         }
                     }
                 }
