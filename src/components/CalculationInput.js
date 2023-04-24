@@ -25,7 +25,8 @@ class CalculationInput extends Component {
         fetchedCalculationParamsList: false,
         calculationParamsListRequestLabels: [],
         calculationParamsList: [],
-        jsonExtValid: {}
+        jsonExtValid: {},
+        requiredValid: {}
     }
 
     componentDidMount() {
@@ -75,6 +76,14 @@ class CalculationInput extends Component {
             );
         }
 
+        if (this.props?.periodicity &&
+            prevProps.periodicity !== this.props.periodicity
+        ) {
+            this.setState({
+                requiredValid: {}
+            });
+        }
+
         if (
             prevState.jsonExtValid !== this.state.jsonExtValid &&
             !!this.props.setJsonExtValid
@@ -83,6 +92,16 @@ class CalculationInput extends Component {
                 .map((key) => this.state.jsonExtValid[key])
                 .every((valid) => valid === true);
             this.props.setJsonExtValid(isJsonExtValid);
+        }
+
+        if (
+            prevState.requiredValid !== this.state.requiredValid &&
+            !!this.props.setRequiredValid
+        ) {
+            const isRequiredValid = Object.keys(this.state.requiredValid)
+                .map((key) => this.state.requiredValid[key])
+                .every((valid) => valid === true);
+            this.props.setRequiredValid(isRequiredValid);
         }
     }
 
@@ -179,6 +198,21 @@ class CalculationInput extends Component {
             value[CALCULATION_RULE][inputName] = inputValue;
             this.props.onChange(JSON_EXT, JSON.stringify(value));
         }
+    }
+
+    required = (inputName, inputValue, required) => {
+        if(!!required) {
+            const isValid = !!Number(inputValue);
+            if (this.state.requiredValid[inputName] !== isValid) {
+                this.setState((state) => ({
+                    requiredValid: {
+                        ...state.requiredValid,
+                        [inputName]: isValid
+                    }
+                }));
+            }
+        }
+        return required;
     }
 
     error = (inputName, inputValue, inputCondition) => {
@@ -278,11 +312,13 @@ class CalculationInput extends Component {
                                 case "number":
                                     inputs.push(
                                         <NumberInput
+                                            min={0}
                                             key={input.name}
                                             label={input.label[intl.locale]}
                                             value={value[input.name]}
-                                            onChange={(v) => this.updateValue(input.name, v)}
+                                            onChange={(v) => this.updateValue(input.name, v ?? 0)}
                                             readOnly={readOnly || !hasRequiredRights}
+                                            required={this.required(input.name, value[input.name], !!input.required)}
                                             error={
                                                 !readOnly &&
                                                 this.error(input.name, value[input.name], input.condition)
@@ -301,6 +337,7 @@ class CalculationInput extends Component {
                                                     onChange={(event) => this.updateValue(input.name, event.target.checked)}
                                                     name={input.name}
                                                     disabled={readOnly || !hasRequiredRights}
+                                                    required={this.required(input.name, value[input.name], input.required)}
                                                     error={
                                                         !readOnly &&
                                                         this.error(input.name, value[input.name], input.condition)
@@ -325,6 +362,7 @@ class CalculationInput extends Component {
                                             value={value[input.name]}
                                             onChange={(v) => this.updateValue(input.name, v)}
                                             readOnly={readOnly || !hasRequiredRights}
+                                            required={this.required(input.name, value[input.name], input.required)}
                                             error={
                                                 !readOnly &&
                                                 this.error(input.name, value[input.name], input.condition)
@@ -340,6 +378,7 @@ class CalculationInput extends Component {
                                             value={value[input.name]}
                                             onChange={(v) => this.updateValue(input.name, v)}
                                             readOnly={readOnly || !hasRequiredRights}
+                                            required={this.required(input.name, value[input.name], !!input.required)}
                                             error={
                                                 !readOnly &&
                                                 this.error(input.name, value[input.name], input.condition)
