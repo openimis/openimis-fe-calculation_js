@@ -12,7 +12,8 @@
   },
   "scripts": {
     "build": "rollup -c",
-    "start": "rollup -c -w"
+    "start": "rollup -c -w",
+    "prepare":"npm run build"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",
