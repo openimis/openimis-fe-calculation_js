@@ -8,4 +8,4 @@ export const VARIABLE_NAME_SEPARATOR = "_";
 export const INPUT_VARIABLE_NAME = "INPUT";
 export const OBJECT_VARIABLE_NAME = "OBJECT";
 export const CONTEXT_PRODUCT = "product";
-export const CONTEXT_BENEFIT_PLAN = "benefit plan";
+export const CONTEXT_BENEFIT_PLAN = "benefitplan";
