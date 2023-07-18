@@ -34,7 +34,7 @@ export function fetchCalculationParamsList(className, instanceClassName, instanc
     );
 }
 
-export function fetchCalculationRules(params) {
+export function fetchCalculationRules(params, context) {
     let filter = !!params !== [] ? params : null;
     if (filter === undefined) {
         filter = []
@@ -45,7 +45,13 @@ export function fetchCalculationRules(params) {
         filter.push(`calcruleType: "account_receivable"`)
     }
     if (pathname.includes('paymentPlans')) {
-        filter.push(`calcruleType: "account_payable"`)
+        const fixedContext = context?.replace(/\s+/g, '') ?? '';
+        if (fixedContext === 'product') {
+            filter.push(`calcruleType: "account_payable"`);
+        }
+        if (fixedContext === 'benefitplan') {
+            filter.push(`calcruleType: "social_protection"`);
+        }
     }
     
     const payload = formatQuery(

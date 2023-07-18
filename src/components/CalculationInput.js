@@ -108,9 +108,10 @@ class CalculationInput extends Component {
     setIsEntityReady = (prevProps = null) => {
         let isEntityReady = false;
         let refetchCalculationParamsList = false;
+        let linkedClassListFiltered = this.props.linkedClassList.filter(item => item !== "ContentType");
         if (!!this.props.entity && !!this.props.linkedClassList.length) {
             isEntityReady = true;
-            this.props.linkedClassList.forEach((linkedClassName) => {
+            linkedClassListFiltered.forEach((linkedClassName) => {
                 const linkedClassKey = Object.keys(this.props.entity).find(
                     (k) => k.toLowerCase() === linkedClassName.toLowerCase()
                 );

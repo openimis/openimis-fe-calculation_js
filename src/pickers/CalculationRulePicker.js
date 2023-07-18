@@ -6,7 +6,13 @@ import { bindActionCreators } from "redux";
 
 class CalculationRulePicker extends Component {
     componentDidMount() {
-        this.props.fetchCalculationRules();
+        this.props.fetchCalculationRules([], this.props.context);
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.props.context !== prevProps.context) {
+            this.props.fetchCalculationRules([], this.props.context);
+        }
     }
 
     render() {
@@ -18,7 +24,8 @@ class CalculationRulePicker extends Component {
             withNull = false,
             nullLabel = null,
             onChange,
-            calculationRulesList
+            calculationRulesList,
+            context
         } = this.props;
         let options = [
             ...calculationRulesList.map((calculationRule) => ({
@@ -32,6 +39,7 @@ class CalculationRulePicker extends Component {
                 label: nullLabel || ""
             })
         }
+
         return (
             <SelectInput
                 label={label}
