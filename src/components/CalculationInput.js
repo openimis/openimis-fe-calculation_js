@@ -34,7 +34,7 @@ class CalculationInput extends Component {
         this.setIsEntityReady();
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
+    componentDidUpdate(prevProps, prevState, snapshot) {        
         if (
             prevProps.entity !== this.props.entity ||
             prevProps.linkedClassList !== this.props.linkedClassList
@@ -124,14 +124,12 @@ class CalculationInput extends Component {
                     ) {
                         refetchCalculationParamsList = true;
                     }
-                } else {
-                    isEntityReady = false;
                 }
             });
         }
         this.setState(
             refetchCalculationParamsList
-                ? { isEntityReady, fetchedCalculationParamsList: false }
+                ? { isEntityReady: true, fetchedCalculationParamsList: false }
                 : { isEntityReady }
         );
     }
