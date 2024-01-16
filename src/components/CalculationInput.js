@@ -34,7 +34,7 @@ class CalculationInput extends Component {
         this.setIsEntityReady();
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
+    componentDidUpdate(prevProps, prevState, snapshot) {        
         if (
             prevProps.entity !== this.props.entity ||
             prevProps.linkedClassList !== this.props.linkedClassList
@@ -108,9 +108,10 @@ class CalculationInput extends Component {
     setIsEntityReady = (prevProps = null) => {
         let isEntityReady = false;
         let refetchCalculationParamsList = false;
+        let linkedClassListFiltered = this.props.linkedClassList.filter(item => item !== "ContentType");
         if (!!this.props.entity && !!this.props.linkedClassList.length) {
             isEntityReady = true;
-            this.props.linkedClassList.forEach((linkedClassName) => {
+            linkedClassListFiltered.forEach((linkedClassName) => {
                 const linkedClassKey = Object.keys(this.props.entity).find(
                     (k) => k.toLowerCase() === linkedClassName.toLowerCase()
                 );
@@ -123,14 +124,12 @@ class CalculationInput extends Component {
                     ) {
                         refetchCalculationParamsList = true;
                     }
-                } else {
-                    isEntityReady = false;
                 }
             });
         }
         this.setState(
             refetchCalculationParamsList
-                ? { isEntityReady, fetchedCalculationParamsList: false }
+                ? { isEntityReady: true, fetchedCalculationParamsList: false }
                 : { isEntityReady }
         );
     }
