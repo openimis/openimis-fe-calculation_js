@@ -396,7 +396,6 @@ class CalculationInput extends Component {
                     }
                 }
             }
-        });
         );
         return inputs;
     }
