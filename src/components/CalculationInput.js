@@ -1,22 +1,22 @@
+import { Checkbox, FormControlLabel, Grid } from "@material-ui/core";
+import { decodeId, formatMessage, NumberInput, SelectInput, TextInput } from "@openimis/fe-core";
+import { Parser } from "hot-formula-parser";
 import React, { Component } from "react";
-import { decodeId, NumberInput, SelectInput, TextInput, formatMessage } from "@openimis/fe-core";
-import { FormControlLabel, Checkbox, Grid } from "@material-ui/core";
-import { fetchLinkedClassList, fetchCalculationParamsList } from "../actions";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
-import { Parser } from "hot-formula-parser"
-import { parseBool } from "../utils"
+import { fetchCalculationParamsList, fetchLinkedClassList } from "../actions";
 import {
     BOOLEAN_TRUE,
-    RIGHT_READ,
-    JSON_EXT,
     CALCULATION_RULE,
+    INPUT_VARIABLE_NAME,
+    JSON_EXT,
     OBJECT_FIELD_PATH_REGEX,
     OBJECT_FIELD_PATH_SEPARATOR,
-    VARIABLE_NAME_SEPARATOR,
-    INPUT_VARIABLE_NAME,
-    OBJECT_VARIABLE_NAME
+    OBJECT_VARIABLE_NAME,
+    RIGHT_READ,
+    VARIABLE_NAME_SEPARATOR
 } from "../constants";
+import { parseBool } from "../utils";
 
 
 class CalculationInput extends Component {
@@ -283,7 +283,6 @@ class CalculationInput extends Component {
         }
         return isRelevance 
     }
-
     inputs = () => {
         const { intl, rights, requiredRights, readOnly = false } = this.props;
         const { fetchedCalculationParamsList, calculationParamsList } = this.state;
@@ -296,103 +295,117 @@ class CalculationInput extends Component {
                 if (
                     !!rights &&
                     !!input.rights &&
-                    !!input.rights[RIGHT_READ] &&
-                    rights.includes(Number(input.rights[RIGHT_READ]))
+                    !!input.rights[RIGHT_READ]
                 ) {
-                    const hasRequiredRights =
-                        !!requiredRights &&
-                        Array.isArray(requiredRights) &&
-                        requiredRights.every((r) => rights.includes(Number(input.rights[r])));
+                    const readRight = input.rights[RIGHT_READ];
                     
-                    if (!!input.relevance && !!value && value.hasOwnProperty(input.name)) {
-                        let checkRelevance = this.relevance(value[input.name], input.relevance);
-                        if (!!checkRelevance){                   
-                            switch (input.type) {                    
-                                case "number":
-                                    inputs.push(
-                                        <NumberInput
-                                            min={0}
-                                            key={input.name}
-                                            label={input.label[intl.locale]}
-                                            value={value[input.name]}
-                                            onChange={(v) => this.updateValue(input.name, v ?? 0)}
-                                            readOnly={readOnly || !hasRequiredRights}
-                                            required={this.required(input.name, value[input.name], !!input.required)}
-                                            error={
-                                                !readOnly &&
-                                                this.error(input.name, value[input.name], input.condition)
-                                            }
-                                        />
-                                    );
+                    // Check if rights includes the readRight (single or in list)
+                    const hasReadAccess = Array.isArray(rights)
+                        ? Array.isArray(readRight)
+                            ? readRight.some((r) => rights.includes(Number(r)))
+                            : rights.includes(Number(readRight))
+                        : false;
+    
+                    if (hasReadAccess) {
+                        const hasRequiredRights =
+                            !!requiredRights &&
+                            Array.isArray(requiredRights) &&
+                            requiredRights.every((r) =>
+                                Array.isArray(input.rights[r])
+                                    ? input.rights[r].some((val) => rights.includes(Number(val)))
+                                    : rights.includes(Number(input.rights[r]))
+                            );
+    
+                        if (!!input.relevance && !!value && value.hasOwnProperty(input.name)) {
+                            let checkRelevance = this.relevance(value[input.name], input.relevance);
+                            if (!!checkRelevance) {                   
+                                switch (input.type) {                    
+                                    case "number":
+                                        inputs.push(
+                                            <NumberInput
+                                                min={0}
+                                                key={input.name}
+                                                label={input.label[intl.locale]}
+                                                value={value[input.name]}
+                                                onChange={(v) => this.updateValue(input.name, v ?? 0)}
+                                                readOnly={readOnly || !hasRequiredRights}
+                                                required={this.required(input.name, value[input.name], !!input.required)}
+                                                error={
+                                                    !readOnly &&
+                                                    this.error(input.name, value[input.name], input.condition)
+                                                }
+                                            />
+                                        );
+                                        break;
+                                    case "checkbox":
+                                        inputs.push(
+                                            <FormControlLabel
+                                                key={input.name}
+                                                label={input.label[intl.locale]}
+                                                control={
+                                                    <Checkbox
+                                                        checked={value[input.name]}
+                                                        onChange={(event) => this.updateValue(input.name, event.target.checked)}
+                                                        name={input.name}
+                                                        disabled={readOnly || !hasRequiredRights}
+                                                        required={this.required(input.name, value[input.name], input.required)}
+                                                        error={
+                                                            !readOnly &&
+                                                            this.error(input.name, value[input.name], input.condition)
+                                                        }
+                                                    />
+                                                }
+                                            />
+                                        );
+                                        break;
+                                    case "select":
+                                        const options = [
+                                            ...input.optionSet.map((option) => ({
+                                                value: parseInt(option.value)? parseInt(option.value) : option.value,
+                                                label: option.label[intl.locale]
+                                            }))
+                                        ];
+                                        inputs.push(
+                                            <SelectInput
+                                                key={input.name}
+                                                label={input.label[intl.locale]}
+                                                options={options}
+                                                value={value[input.name]}
+                                                onChange={(v) => this.updateValue(input.name, v)}
+                                                readOnly={readOnly || !hasRequiredRights}
+                                                required={this.required(input.name, value[input.name], input.required)}
+                                                error={
+                                                    !readOnly &&
+                                                    this.error(input.name, value[input.name], input.condition)
+                                                }
+                                            />
+                                        );
+                                        break;
+                                    case "string":
+                                        inputs.push(
+                                            <TextInput
+                                                key={input.name}
+                                                label={input.label[intl.locale]}
+                                                value={value[input.name]}
+                                                onChange={(v) => this.updateValue(input.name, v)}
+                                                readOnly={readOnly || !hasRequiredRights}
+                                                required={this.required(input.name, value[input.name], !!input.required)}
+                                                error={
+                                                    !readOnly &&
+                                                    this.error(input.name, value[input.name], input.condition)
+                                                }
+                                            />
+                                        );
                                     break;
-                                case "checkbox":
-                                    inputs.push(
-                                        <FormControlLabel
-                                            key={input.name}
-                                            label={input.label[intl.locale]}
-                                            control={
-                                                <Checkbox
-                                                    checked={value[input.name]}
-                                                    onChange={(event) => this.updateValue(input.name, event.target.checked)}
-                                                    name={input.name}
-                                                    disabled={readOnly || !hasRequiredRights}
-                                                    required={this.required(input.name, value[input.name], input.required)}
-                                                    error={
-                                                        !readOnly &&
-                                                        this.error(input.name, value[input.name], input.condition)
-                                                    }
-                                                />
-                                            }
-                                        />
-                                    );
-                                    break;
-                                case "select":
-                                    const options = [
-                                        ...input.optionSet.map((option) => ({
-                                            value: parseInt(option.value)? parseInt(option.value) : option.value,
-                                            label: option.label[intl.locale]
-                                        }))
-                                    ];
-                                    inputs.push(
-                                        <SelectInput
-                                            key={input.name}
-                                            label={input.label[intl.locale]}
-                                            options={options}
-                                            value={value[input.name]}
-                                            onChange={(v) => this.updateValue(input.name, v)}
-                                            readOnly={readOnly || !hasRequiredRights}
-                                            required={this.required(input.name, value[input.name], input.required)}
-                                            error={
-                                                !readOnly &&
-                                                this.error(input.name, value[input.name], input.condition)
-                                            }
-                                        />
-                                    );
-                                    break;
-                                case "string":
-                                    inputs.push(
-                                        <TextInput
-                                            key={input.name}
-                                            label={input.label[intl.locale]}
-                                            value={value[input.name]}
-                                            onChange={(v) => this.updateValue(input.name, v)}
-                                            readOnly={readOnly || !hasRequiredRights}
-                                            required={this.required(input.name, value[input.name], !!input.required)}
-                                            error={
-                                                !readOnly &&
-                                                this.error(input.name, value[input.name], input.condition)
-                                            }
-                                        />
-                                    );
-                                break;
+                                }
                             }
                         }
                     }
                 }
             });
         return inputs;
-    }
-
+    };
+    
     render() {
         return this.inputs().map((input) => (
             <Grid item xs={this.props.gridItemSize} className={this.props.gridItemStyle} key={input.key}>
