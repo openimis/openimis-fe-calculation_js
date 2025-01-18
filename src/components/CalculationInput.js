@@ -291,23 +291,29 @@ class CalculationInput extends Component {
         const value = !!this.props.value
             ? JSON.parse(this.props.value)[CALCULATION_RULE]
             : null;
-        fetchedCalculationParamsList &&
-            calculationParamsList.forEach((input) => {
-                if (
-                    !!rights &&
-                    !!input.rights &&
-                    !!input.rights[RIGHT_READ] &&
-                    rights.includes(Number(input.rights[RIGHT_READ]))
-                ) {
+        fetchedCalculationParamsList && calculationParamsList.forEach((input) => {
+            if (
+                !!rights &&
+                !!input.rights &&
+                !!input.rights[RIGHT_READ]
+            ) {
+                const inputRightsRead = input.rights[RIGHT_READ];
+                const rightsReadList = Array.isArray(inputRightsRead) ? inputRightsRead : [inputRightsRead];
+        
+                if (rightsReadList.some((right) => rights.includes(Number(right)))) {
                     const hasRequiredRights =
                         !!requiredRights &&
                         Array.isArray(requiredRights) &&
-                        requiredRights.every((r) => rights.includes(Number(input.rights[r])));
-                    
+                        requiredRights.every((r) => {
+                            const inputRights = input.rights[r];
+                            const rightsList = Array.isArray(inputRights) ? inputRights : [inputRights];
+                            return rightsList.some((right) => rights.includes(Number(right)));
+                        });
+        
                     if (!!input.relevance && !!value && value.hasOwnProperty(input.name)) {
                         let checkRelevance = this.relevance(value[input.name], input.relevance);
-                        if (!!checkRelevance){                   
-                            switch (input.type) {                    
+                        if (!!checkRelevance) {
+                            switch (input.type) {
                                 case "number":
                                     inputs.push(
                                         <NumberInput
@@ -349,7 +355,7 @@ class CalculationInput extends Component {
                                 case "select":
                                     const options = [
                                         ...input.optionSet.map((option) => ({
-                                            value: parseInt(option.value)? parseInt(option.value) : option.value,
+                                            value: parseInt(option.value) ? parseInt(option.value) : option.value,
                                             label: option.label[intl.locale]
                                         }))
                                     ];
@@ -384,12 +390,14 @@ class CalculationInput extends Component {
                                             }
                                         />
                                     );
-                                break;
+                                    break;
                             }
                         }
                     }
                 }
-            });
+            }
+        });
+        );
         return inputs;
     }
 
