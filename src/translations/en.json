@@ -1,3 +1,5 @@
 {
-    "calculation.validationFailed": "Value validation failed"
+  "calculation.validationFailed": "Value validation failed",
+  "calculation.gql_query_calculation_rule_perms": "Calculation | Query Calculation Rule",
+  "calculation.gql_mutation_update_calculation_rule_perms": "Calculation | Mutation Update Calculation Rule"
 }
