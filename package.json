@@ -24,19 +24,25 @@
     "@babel/preset-react": "^7.9.4",
     "@babel/runtime": "^7.9.6",
     "@vitejs/plugin-react": "^4.0.0",
-    "vite": "^4.0.0",
     "moment": "^2.25.3",
     "prop-types": "^15.7.2",
     "react-autosuggest": "^10.0.2",
     "react-intl": "^2.9.0",
     "react-router-dom": "^5.2.0",
     "redux": "^4.0.5",
-    "redux-api-middleware": "^3.2.1"
+    "redux-api-middleware": "^3.2.1",
+    "vite": "^4.0.0"
   },
   "files": [
     "dist"
   ],
   "dependencies": {
-    "hot-formula-parser": "^4.0.0"
+    "@emotion/cache": "^11.11.0",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "5.4.4",
+    "hot-formula-parser": "^4.0.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
   }
 }

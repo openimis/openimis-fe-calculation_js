@@ -1,4 +1,4 @@
-import { Checkbox, FormControlLabel, Grid } from "@material-ui/core";
+import { Checkbox, FormControlLabel, Grid } from "@mui/material";
 import { decodeId, formatMessage, NumberInput, SelectInput, TextInput } from "@openimis/fe-core";
 import { Parser } from "hot-formula-parser";
 import React, { Component } from "react";
