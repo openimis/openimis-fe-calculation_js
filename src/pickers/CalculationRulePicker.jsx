@@ -42,7 +42,7 @@ class CalculationRulePicker extends Component {
 
         return (
             <SelectInput
-                label={label}
+                strLabel={label}
                 options={options}
                 value={value}
                 onChange={(v) => onChange("calculation", v)}
@@ -61,4 +61,5 @@ const mapDispatchToProps = dispatch => {
     return bindActionCreators({ fetchCalculationRules }, dispatch);
 };
 
+export { CalculationRulePicker };
 export default connect(mapStateToProps, mapDispatchToProps)(CalculationRulePicker);

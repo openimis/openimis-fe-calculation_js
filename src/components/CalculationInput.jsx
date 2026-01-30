@@ -408,7 +408,7 @@ class CalculationInput extends Component {
     
     render() {
         return this.inputs().map((input) => (
-            <Grid item xs={this.props.gridItemSize} className={this.props.gridItemStyle} key={input.key}>
+            <Grid size={this.props.gridItemSize} className={this.props.gridItemStyle} key={input.key}>
                 {input}
             </Grid>
         ));
@@ -426,4 +426,5 @@ const mapDispatchToProps = dispatch => {
     return bindActionCreators({ fetchLinkedClassList, fetchCalculationParamsList }, dispatch);
 };
 
+export { CalculationInput };
 export default connect(mapStateToProps, mapDispatchToProps)(CalculationInput);
