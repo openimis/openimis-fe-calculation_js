@@ -42,7 +42,7 @@
     "@emotion/styled": "^11.11.0",
     "@mui/material": "^7.2.0",
     "react-intl": "^7.1.11",
-    "redux": "^4.0.5",
+    "redux": "^5.0.1",
     "react-router-dom": "^5.2.0",
     "moment": "^2.25.3",
     "hot-formula-parser": "^4.0.0"
