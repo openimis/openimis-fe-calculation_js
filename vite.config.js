@@ -32,6 +32,13 @@ export default defineConfig({
         'prop-types',
         /^react.*/,
         /^redux.*/,
+        '@mui/material',
+        '@mui/icons-material',
+        '@mui/x-date-pickers',
+        '@emotion/react',
+        '@emotion/styled',
+        '@emotion/cache',
+        '@mui/styled-engine',
         'hot-formula-parser'
       ],
       output: {
