@@ -33,8 +33,7 @@
     "dist"
   ],
   "dependencies": {
-    "@emotion/cache": "^11.11.0",
-    "hot-formula-parser": "^4.0.0"
+    "@emotion/cache": "^11.11.0"
   },
   "peerDependencies": {
     "react": "^18.2.0",
@@ -45,6 +44,7 @@
     "react-intl": "^7.1.11",
     "redux": "^4.0.5",
     "react-router-dom": "^5.2.0",
-    "moment": "^2.25.3"
+    "moment": "^2.25.3",
+    "hot-formula-parser": "^4.0.0"
   }
 }
