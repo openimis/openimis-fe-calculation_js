@@ -10,7 +10,7 @@ const CALCULATIONPARAMS_PROJECTION = () => [
 ];
 
 const CALCULATIONRULES_PROJECTION = () => [
-    "calculationRules{uuid, calculationClassName}"
+    "calculationRules{uuid, calculationClassName, supportsAdvancedCriteria}"
 ]
 
 export function fetchLinkedClassList(className) {
