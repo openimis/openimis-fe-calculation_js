@@ -48,13 +48,15 @@ class CalculationRulePicker extends Component {
                 onChange={(v) => onChange("calculation", v)}
                 required={required}
                 readOnly={readOnly}
+                loading={this.props.fetching}
             />
         )
     }
 }
 
 const mapStateToProps = state => ({
-    calculationRulesList: state.calculation.calculationRulesList
+    calculationRulesList: state.calculation.calculationRulesList,
+    fetching: state.calculation.fetchingCalculationRulesList,
 });
 
 const mapDispatchToProps = dispatch => {
